@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+		#jolly{
+			width: 500px;
+			height: 500px;
+			background-image: url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfVn3KaMJpSUUIvpJukcaRT4rfguxivgjERA&s);
+			background-size: contain;
+			background-repeat: no-repeat;
+			position: relative;
+			}
+
+		#jolly:hover {
+		animation-name:sleigh;
+		animation-duration: 5s;
+
+	}
+
+
+	@keyframes sleigh{
+		from{
+	}
+	to{
+		transform:translate(1000px);
+}
+		}
+		#snowman{
+			width: 200px;
+			height: 300px;
+			background-image: url(https://www.beautypools.com/wp-content/uploads/2019/12/Snowman-Transparent-Images-PNG.png);
+			background-size: contain;
+			background-repeat: no-repeat;
+			background-color: ghostwhite;
+		}
+	</style>
+</head>
+<body>
+
+	<div id="jolly"></div>
+
+	<div id="snowman"></div>
+
+	<script type="text/javascript">
+		let clicks=0
+	document.addEventListener("click",function(){
+	clicks=clicks+1
+	console.log(clicks)
+	
+	if(clicks%2==1){
+		document.body.style.backgroundColor="red"
+		jolly.style.backgroundColor="red"
+		snowman.style.backgroundColor="red"
+
+	}
+	
+
+	if(clicks%2==0){
+		document.body.style.backgroundColor="green"
+		jolly.style.backgroundColor="green"
+		snowman.style.backgroundColor="green"
+	}
+
+
+	})   
+	document.addEventListener("hover")
+
+	// end of event listener
+
+
+
+	</script>
+</body>
+</html>

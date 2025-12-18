@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	
+	<style type="text/css">
+		#matt{
+			background-color:green;
+			width: 200px;
+			height: 200px;
+		}
+
+
+	</style>
+</head>
+<body>
+
+<div id="matt"></div>
+
+<audio id="ken" src="kensounds.m4a"></audio>
+
+<script type="text/javascript">
+	
+	matt.addEventListener("mouseenter", function(){
+		ken.play()
+		})
+
+	matt.addEventListener("mouseleave", function(){
+		ken.pause()
+	})
+
+</script>
+
+</body>
+</html>
