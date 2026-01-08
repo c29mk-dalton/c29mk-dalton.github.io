@@ -4,27 +4,14 @@
 	<style type="text/css">
 		#jolly{
 			width: 500px;
-			height: 500px;
+			height: 100px;
 			background-image: url(https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfVn3KaMJpSUUIvpJukcaRT4rfguxivgjERA&s);
 			background-size: contain;
 			background-repeat: no-repeat;
 			position: relative;
 			}
 
-		#jolly:hover {
-		animation-name:sleigh;
-		animation-duration: 5s;
 
-	}
-
-
-	@keyframes sleigh{
-		from{
-	}
-	to{
-		transform:translate(1000px);
-}
-		}
 		#snowman{
 			width: 200px;
 			height: 300px;
@@ -63,11 +50,11 @@
 
 
 	})   
-	document.addEventListener("hover")
-
-	// end of event listener
-
-
+	jolly.style.left="0px"
+	document.addEventListener("keypress",function(){
+			jolly.style.left= parseInt(jolly.style.left)+10+"px"
+			console.log("im the goat")
+		})
 
 	</script>
 </body>
