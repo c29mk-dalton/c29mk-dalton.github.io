@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style type="text/css">
+		body{
+			background-color: ghostwhite;
+		}
+		.square{
+			width: 10px;
+			height: 20px;
+			border-color: ghostwhite;
+			position: absolute;
+		}
+	</style>
+</head>
+<body>
+	<script type="text/javascript">
+		
+		function makeConfetti(){
+			let confetti = document.createElement("div")
+			confetti.classList.add("square")
+			document.body.appendChild(confetti)
+
+			let x = Math.random()*255
+			let y = Math.random()*255
+			let z = Math.random()*255
+
+			confetti.style.top=Math.random()*800+"px"
+			confetti.style.left=Math.random()*1600+"px"
+
+			confetti.style.backgroundColor ="rgb("+x+","+y+","+z+")"
+		}
+		setInterval(makeConfetti, 10)
+
+	</script>
+</body>
+</html>
