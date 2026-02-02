@@ -2,35 +2,153 @@
 <html>
 <head>
 	<style type="text/css">
+
 		body{
 			background-color: ghostwhite;
 		}
 		.square{
 			width: 10px;
-			height: 20px;
+			height: 30px;
 			border-color: ghostwhite;
 			position: absolute;
+			animation-name: swing3d;
+			animation-duration: 0.5s;
+			animation-iteration-count: infinite;
+			animation-direction: alternate;
+
+		}
+		@keyframes swing{
+			from{
+				transform: rotate(var(--startRot));
+			}
+			to{
+				transform: rotate(var(--endRot));
+			}
+		}
+		@keyframes swing3d{
+			from{
+				transform: rotateY(-360deg) rotateZ(-300deg);
+			}
+			to{
+				transform: rotateY(360deg) rotateZ(300deg);
+			}
+		}
+		#ball{
+			width: 150px;
+			height: 150px;
+			background-size: contain;
+			background-repeat: no-repeat;
+			position: relative;
+			left: 625px;
+			background-image: url(https://i.pinimg.com/originals/ec/8f/25/ec8f25f5ad62ed2e81b2a54c4ef11589.gif);
+		}
+		#gru{
+			width: 300px;
+			height: 200px;
+			background-size: contain;
+			background-repeat: no-repeat;
+			position: relative;
+			left:-30;
+			top: 380px;
+			background-image: url(https://i.pinimg.com/originals/ac/65/67/ac65677c7a2fe6af77b7f59b8041340f.gif);
+		}
+		#boi{
+			width: 200px;
+			height: 300px;
+			background-size: contain;
+			background-repeat: no-repeat;
+			position: relative;
+			left:800px;
+			top: 200px;
+			background-image: url(https://i.pinimg.com/originals/59/92/2a/59922a4e1136646964b42659fb429d0b.gif);
+		}
+		#dr{
+			width: 200px;
+			height: 300px;
+			background-size: contain;
+			background-repeat: no-repeat;
+			position: relative;
+			top:-200px;
+			left:1000px;
+			background-image: url(https://i.redd.it/d2sllb7g9ibc1.gif);
 		}
 	</style>
 </head>
 <body>
+	<button id="btn">drop confetti</button>
+	<input type="color" id="colorPicker" value ="#ff0000">
+	<input type="range" min="1" max="20" step="1" id="slider" value="2">
+
+<div id="ball"></div>
+<div id="gru"></div>
+<div id="boi"></div>
+<div id="dru"></div>
 	<script type="text/javascript">
-		
+
+		let colors = ["CACFD6", "D6E5E3", "517664", "517664", "2D3319"]
+		let food = ["pasta", "steak", "pizza", "chicken"]
+		console.log(colors.length)
+		console.log(food.length)
+
+		let dropConfettiBtn = document.getElementById('btn')
+		let colorPicker = document.getElementById("colorPicker")
+		let slider = document.getElementById("slider")
+		console.log(colorPicker.value)
 		function makeConfetti(){
 			let confetti = document.createElement("div")
 			confetti.classList.add("square")
 			document.body.appendChild(confetti)
 
+			let startRot = Math.random() * - 150 + "deg"
+			let endRot = Math.random() * 200 + "deg"
+
+			let randomColorIndex = Math.floor(Math.random() * colors.length)
+			console.log(randomColorIndex)
+			confetti.style.backgroundColor = colorPicker.value
+			//confetti.style.backgroundColor = colors[randomColorIndex]
+			
+			confetti.style.setProperty("--startRot", startRot)
+			confetti.style.setProperty("--endRot", endRot)
+
 			let x = Math.random()*255
 			let y = Math.random()*255
 			let z = Math.random()*255
 
-			confetti.style.top=Math.random()*800+"px"
-			confetti.style.left=Math.random()*1600+"px"
+			let rotation = Math.random() * 360
 
-			confetti.style.backgroundColor ="rgb("+x+","+y+","+z+")"
+			confetti.style.top= Math.random()*10+"px"
+			confetti.style.left= Math.random()*1600+"px"
+			confetti.style.transform= "rotate("+ rotation + "deg)"
+
+			//confetti.style.backgroundColor ="rgb("+x+","+y+","+z+")"
+
+			function fall() {
+				let fallFactor = 30
+				confetti.style.top = parseInt(confetti.style.top) + fallFactor + "px"
+
+					}
+			setInterval(fall, 100)
 		}
-		setInterval(makeConfetti, 10)
+
+		dropConfettiBtn.addEventListener("click", function(){
+			for (let i = 0; i < slider.value; i++){
+			makeConfetti()
+		}
+	})	
+		//for (let i = 0; i < 5; i++){
+			//makeConfetti()
+	
+	//	setInterval(makeConfetti, 300)
+			function changeColor(){
+			let r = Math.round(Math.random()*255)
+			let g = Math.round(Math.random()*255)
+			let b = Math.round(Math.random()*255)
+
+	document.body.style.backgroundColor = "rgb("+ r +","+ g +"," + b +")"
+
+			}
+				setInterval(changeColor, 1000)
+			
 
 	</script>
 </body>
