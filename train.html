@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Document</title>
+	<style>
+		#train{
+			display: flex;
+			gap: 12px;
+		}
+		.cart{
+			border: 1px solid black;
+			min-width: 100px;
+			height: 80px;
+			text-align: center;
+		}
+		.cart:before{
+			content: "";
+			width: 30px;
+			height: 30px;
+			border: 1px solid black;
+			display: block;
+			border-radius: 50%;
+			position: relative;
+			bottom: -70px;
+			left: 10px;
+			background-color: white;
+		}
+		.cart:after{
+		}
+
+	</style>
+</head>
+<body>
+	<input type="text" id="person">
+	<button id="add-person">add person</button>
+	<button id="remove-last-person"> remove last person </button>
+
+	<div id="train">
+		
+	</div>
+	<script>
+		let people = ["matt", "ken", "evren", "lukas", "zara", "jocelyn"]
+		let train = document.getElementById ("train")
+
+		for(let i = 0; i < people.length; i++){
+			console.log(people[i])
+			// create a new div
+			let cart = document.createElement("div")
+			cart.textContent = people[i]
+			cart.classList.add("cart")
+			train.appendChild(cart)
+			// add a class (cart) to this div
+		}
+		function makeTrain(){
+		train.innerHTML = ""
+			for(let i = 0; i < people.length; i++){
+			console.log(people[i])
+			let cart = document.createElement("div")
+			cart.textContent = people[i]
+			cart.classList.add("cart")
+			train.appendChild(cart)
+			
+		}
+	}
+	makeTrain()
+
+		let addPersonBtn = document.getElementById("add-person")
+		addPersonBtn.addEventListener("click", function() {
+			let personInput = document.getElementById("person")
+			people.push(personInput.value)
+			makeTrain()
+
+			personInput.value = ""
+			console.log(people)
+		})
+
+		let removeLastPersonBtn = document.getElementById("remove-last-person")
+		removeLastPersonBtn.addEventListener("click", function(){
+			people.pop()
+			makeTrain()
+			console.log(people)
+
+		})
+	
+	</script>
+</body>
+</html>
