@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Backbone Tetris (Fixed)</title>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/backbone.js/1.5.0/backbone-min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsfxr/1.0.0/jsfxr.min.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: black;
+      color: white;
+      text-align: center;
+    }
+
+    canvas {
+      border: 1px solid white;
+    }
+
+    #controls button {
+      margin: 5px;
+    }
+
+    #board {
+      width: 300px;
+      margin: auto;
+      position: relative;
+    }
+
+    #message {
+      position: absolute;
+      top: 200px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Backbone Tetris</h1>
+
+<div id="controls">
+  <button id="pause">Pause (p)</button>
+  <button id="mute">Mute (m)</button>
+  <button id="new_game">New Game (n)</button>
+</div>
+
+<div id="board">
+  <canvas width="300" height="500"></canvas>
+  <div id="message"></div>
+</div>
+
+<script>
+var app = app || {};
+
+/* ---------------- MODELS ---------------- */
+
+app.Block = Backbone.Model.extend({
+  defaults: {
+    x: 3,
+    y: 0,
+    shape: []
+  },
+
+  initialize: function () {
+    var shape = this.get('shape');
+    this.set('width', shape[0].length);
+    this.set('height', shape.length);
+  }
+});
+
+app.Board = Backbone.Collection.extend({
+  model: app.Block
+});
+
+/* ---------------- VIEWS ---------------- */
+
+app.BlockView = Backbone.View.extend({
+  render: function () {
+    var shape = this.model.get('shape');
+    var bx = this.model.get('x') * app.blockSize;
+    var by = this.model.get('y') * app.blockSize;
+
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) {
+          app.context.strokeRect(
+            bx + x * app.blockSize,
+            by + y * app.blockSize,
+            app.blockSize,
+            app.blockSize
+          );
+        }
+      }
+    }
+  }
+});
+
+app.GridView = Backbone.View.extend({
+  clearGrid: function () {
+    app.grid = Array.from({ length: app.height }, () =>
+      Array(app.width).fill(0)
+    );
+  },
+
+  updateGrid: function (model) {
+    var shape = model.get('shape');
+    var x = model.get('x');
+    var y = model.get('y');
+
+    for (let sy = 0; sy < shape.length; sy++) {
+      for (let sx = 0; sx < shape[sy].length; sx++) {
+        if (shape[sy][sx]) {
+          app.grid[y + sy][x + sx] = 1;
+        }
+      }
+    }
+  },
+
+  drawGrid: function () {
+    for (let y = 0; y < app.height; y++) {
+      for (let x = 0; x < app.width; x++) {
+        if (app.grid[y][x]) {
+          app.context.fillRect(
+            x * app.blockSize,
+            y * app.blockSize,
+            app.blockSize,
+            app.blockSize
+          );
+        }
+      }
+    }
+  }
+});
+
+app.BoardView = Backbone.View.extend({
+  el: 'canvas',
+
+  initialize: function () {
+    this.ctx = this.el.getContext('2d');
+    app.context = this.ctx;
+
+    this.collection = new app.Board();
+    this.gridView = new app.GridView();
+    this.gridView.clearGrid();
+
+    $(document).on('keydown', this.keyAction.bind(this));
+    this.spawn();
+    this.start();
+  },
+
+  start: function () {
+    clearInterval(app.interval);
+    app.interval = setInterval(this.tick.bind(this), 700);
+  },
+
+  tick: function () {
+    this.moveDown();
+    this.render();
+  },
+
+  render: function () {
+    this.ctx.clearRect(0, 0, app.canvas.width, app.canvas.height);
+    this.gridView.drawGrid();
+
+    this.collection.each(function (model) {
+      new app.BlockView({ model }).render();
+    });
+  },
+
+  spawn: function () {
+    var shape = _.clone(_.sample(app.shapes).shape);
+    this.collection.reset([
+      new app.Block({ shape })
+    ]);
+  },
+
+  moveDown: function () {
+    var model = this.collection.at(0);
+    if (!model) return;
+
+    var newY = model.get('y') + 1;
+    if (this.fits(model.get('shape'), model.get('x'), newY)) {
+      model.set('y', newY);
+    } else {
+      this.gridView.updateGrid(model);
+      this.spawn();
+    }
+  },
+
+  moveLeft: function () {
+    var m = this.collection.at(0);
+    if (this.fits(m.get('shape'), m.get('x') - 1, m.get('y'))) {
+      m.set('x', m.get('x') - 1);
+    }
+  },
+
+  moveRight: function () {
+    var m = this.collection.at(0);
+    if (this.fits(m.get('shape'), m.get('x') + 1, m.get('y'))) {
+      m.set('x', m.get('x') + 1);
+    }
+  },
+
+  rotate: function () {
+    var m = this.collection.at(0);
+    var s = m.get('shape');
+    var rotated = _.zip(...s).reverse();
+    if (this.fits(rotated, m.get('x'), m.get('y'))) {
+      m.set('shape', rotated);
+    }
+  },
+
+  fits: function (shape, x, y) {
+    for (let sy = 0; sy < shape.length; sy++) {
+      for (let sx = 0; sx < shape[sy].length; sx++) {
+        if (!shape[sy][sx]) continue;
+        let px = x + sx;
+        let py = y + sy;
+        if (
+          px < 0 || px >= app.width ||
+          py >= app.height ||
+          app.grid[py]?.[px]
+        ) return false;
+      }
+    }
+    return true;
+  },
+
+  keyAction: function (e) {
+    if (e.keyCode === 37) this.moveLeft();
+    if (e.keyCode === 39) this.moveRight();
+    if (e.keyCode === 38) this.rotate();
+    if (e.keyCode === 40) this.moveDown();
+  }
+});
+
+/* ---------------- BOOT ---------------- */
+
+app.blockSize = 20;
+app.canvas = document.querySelector('canvas');
+app.width = app.canvas.width / app.blockSize;
+app.height = app.canvas.height / app.blockSize;
+
+app.shapes = [
+  { shape: [[1,1,1,1]] },
+  { shape: [[1,1],[1,1]] },
+  { shape: [[0,1,0],[1,1,1]] },
+  { shape: [[1,0,0],[1,1,1]] },
+  { shape: [[0,0,1],[1,1,1]] },
+  { shape: [[1,1,0],[0,1,1]] },
+  { shape: [[0,1,1],[1,1,0]] }
+];
+
+$(function () {
+  app.boardView = new app.BoardView();
+});
+</script>
+
+</body>
+</html>

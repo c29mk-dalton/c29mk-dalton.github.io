@@ -34,6 +34,7 @@
 </head>
 <body>
 	<input type="text" id="person">
+	<input type="color" id="colorPicker" value="#ff0000">
 	<button id="add-person">add person</button>
 	<button id="remove-last-person"> remove last person </button>
 
@@ -41,14 +42,43 @@
 		
 	</div>
 	<script>
-		let people = ["matt", "ken", "evren", "lukas", "zara", "jocelyn"]
+
+		let matty = {
+		name: "matty",
+		 studentId: "c29mk",
+		 pronouns: "he/she",
+		 fav_color: "blue"}
+
+		 let dalton = {
+		 	name: "dalton",
+		 	year: 1919,
+		 	studentNum: 500
+		 }
+
+		 let kendrick = {
+		 	name: "kenny",
+		 	studentId: "c29cp3",
+		 	fav_color: "red",
+		 }
+		
+
+		//let people = ["matt", "ken", "evren", "lukas", "zara", "jocelyn"]
+		 let people = [matty, kendrick]
+		 console.log(people)
+		
+
+		people.push({
+			name: "evren",
+			fav_color: "blue"
+		})
+
 		let train = document.getElementById ("train")
 
 		for(let i = 0; i < people.length; i++){
 			console.log(people[i])
 			// create a new div
 			let cart = document.createElement("div")
-			cart.textContent = people[i]
+			
 			cart.classList.add("cart")
 			train.appendChild(cart)
 			// add a class (cart) to this div
@@ -58,6 +88,10 @@
 			for(let i = 0; i < people.length; i++){
 			console.log(people[i])
 			let cart = document.createElement("div")
+			cart.textContent = people[i].name
+			cart.style.backgroundColor = people[i].fav_color
+			console.log(people[i])
+			cart.style.backgroundColor = people[i]
 			cart.textContent = people[i]
 			cart.classList.add("cart")
 			train.appendChild(cart)
@@ -69,9 +103,14 @@
 		let addPersonBtn = document.getElementById("add-person")
 		addPersonBtn.addEventListener("click", function() {
 			let personInput = document.getElementById("person")
-			people.push(personInput.value)
+			let colorInput = document.getElementById("colorPicker")
+			//people.push(personInput.value)
+			people.push({
+				name: personInput.value,
+				fav_color: colorPicker.value
+			})
+			
 			makeTrain()
-
 			personInput.value = ""
 			console.log(people)
 		})
