@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+	<style>
+
+	#badbutton{
+		position: absolute;
+	}
+	</style>
+</head>
+<body>
+	<button id="badbutton">can't click me!</button>
+<script>
+	// create a button variable for your bad button
+	let badbutton = document.getElementById("badbutton")
+	console.log(badbutton)
+
+	let x = Math.random()*255
+	let y = Math.random()*255
+	let z = Math.random()*255
+
+	badbutton.addEventListener("mouseover", function(){
+		console.log("mouseover")
+		badbutton.style.top= Math.random()*768+"px"
+			badbutton.style.left= Math.random()*1024+"px"
+			badbutton.style.backgroundColor ="rgb("+Math.random()*255+","+Math.random()*255+","+Math.random()*255+")"
+			badbutton.style.width = Math.random()*200
+			badbutton.style.height = Math.random()*200
+
+	})
+
+	badbutton.addEventListener("click", function(){
+		console.log("click!")
+	})
+
+	badbutton.addEventListener("mouseout", function(){
+		console.log("mouseout")
+
+	})
+</script>
+</body>
+</html>
