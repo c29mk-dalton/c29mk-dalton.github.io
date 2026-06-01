@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://cdn.jsdelivr.net/npm/p5@1.11.11/lib/p5.min.js"></script>
+  <title>Bouncing Ball</title>
+</head>
+<body>
+
+  <script>
+    let xpos, ypos;
+    let xspeed, yspeed;
+    let d;
+    let circleColor;
+
+    function setup() {
+      createCanvas(800, 800);
+      xpos = width / 2;
+      ypos = height / 2;
+      xspeed = 5;
+      yspeed = 8;
+      d = 50;
+      circleColor = "white";
+    }
+
+    function draw() {
+      background(200);
+
+      // Updates the diameter every frame by calling the function
+      d = getRandomDiameter();
+
+      // Move the ball
+      xpos += xspeed;
+      ypos += yspeed;
+
+      // Bounce logic
+      if (xpos + d/2 > width || xpos - d/2 < 0) {
+        xspeed *= -1;
+      }
+      if (ypos + d/2 > height || ypos - d/2 < 0) {
+        yspeed *= -1;
+      }
+
+      // Changes color based on screen quadrant
+      changeBallColor("green", "blue", "red", "yellow");
+
+      fill(circleColor);
+      noStroke();
+      circle(xpos, ypos, d);
+    }
+
+    function getRandomDiameter() {
+      // Returns a random value between 30 and 60
+      return random(30, 100);
+    }
+
+    function changeBallColor(topRight, bottomRight, topLeft, bottomLeft) {
+      if (xpos > width/2 && ypos < height/2) {
+        circleColor = topRight;    
+      } else if (xpos < width/2 && ypos < height/2) {
+        circleColor = topLeft;    
+      } else if (xpos < width/2 && ypos > height/2) {
+        circleColor = bottomLeft;  
+      } else {
+        circleColor = bottomRight;
+      }
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Docuument</title>
+	<script src="https://cdn.jsdelivr.net/npm/p5@1.11.13/lib/p5.min.js"></script>
+</head>
+<body>
+	<script>
+		function setup() {
+			createCanvas(800,800)
+		}
+
+		function draw() {
+			background(200)
+			//rotate(PI/8)
+			//rotate(frameCount * 0.05)
+			//rectMode(CENTER)
+			push()
+			translate(300,300)
+			rectMode(CENTER)
+			rotate(frameCount * 0.05)
+			rect(0, 0, 100, 50)
+			pop()
+			push()
+			translate(width/2, height/2)
+			//rotate(frameCount * 0.01)
+			//rect(0, 0, 200, 50)
+			pop()
+			push()
+			translate(150,150)
+			circle(0, 0, 100)
+			rotate(frameCount * 0.01)
+			circle(0-50, 0+50, 50)
+			circle(0+50, 0-50, 50)
+			circle(0+50, 0+50, 50)
+			circle(0-50, 0-50, 50)
+			pop()
+			push()
+			translate(500, 100)
+			fill("#875B08")
+			rect(50,20,100,300)
+			rect(60,300,25,125)
+			rect(120,300,25,125)
+			push()
+			translate(500, 100)
+			rotate(45)
+			rect(20,100,25,130)
+			pop()
+			push()
+			translate(500, 100)
+			rect(160,100,25,130)
+			pop()
+			fill("#000000")
+			circle(70,70,30)
+			circle(130,70,30)
+			pop()
+		}
+	</script>
+</body>
+</html>

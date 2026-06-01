@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Image Minesweeper</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #controls {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 8px 16px;
+            margin: 0 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background-color: #e6e6e6;
+        }
+        #board {
+            display: grid;
+            gap: 2px;
+            background-color: #bdbdbd;
+            padding: 5px;
+            border: 3px solid #7b7b7b;
+            border-radius: 5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .cell {
+            width: 30px; /* Shrunk slightly to fit larger grids */
+            height: 30px;
+            background-color: #c6c6c6;
+            border-top: 3px solid #fff;
+            border-left: 3px solid #fff;
+            border-right: 3px solid #7b7b7b;
+            border-bottom: 3px solid #7b7b7b;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .cell.revealed {
+            background-color: #e0e0e0;
+            border: 1px solid #9e9e9e;
+        }
+        .cell.mine {
+            background-color: #ffcdd2;
+        }
+        /* Custom image formatting inside the cell */
+        .cell img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+        /* Color mapping for classic Minesweeper feel */
+        .n-1 { color: blue; }
+        .n-2 { color: green; }
+        .n-3 { color: red; }
+        .n-4 { color: darkblue; }
+        .n-5 { color: maroon; }
+        .n-6 { color: turquoise; }
+        .n-7 { color: black; }
+        .n-8 { color: gray; }
+    </style>
+</head>
+<body>
+
+    <h1>Minesweeper</h1>
+    <div id="controls">
+        <button onclick="initGame(9, 9, 10)">Beginner (9x9)</button>
+        <button onclick="initGame(16, 16, 40)">Intermediate (16x16)</button>
+        <button onclick="initGame(24, 24, 99)">Expert (24x24)</button>
+    </div>
+    <div id="board"></div>
+
+    <script>
+        // Variables for dynamic grid sizing
+        let currentRows = 9;
+        let currentCols = 9;
+        let currentMines = 10;
+        
+        // Your custom image URL
+        const FLAG_IMAGE_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTTnydMNyTRO4iOBcpZNM5RwLlZWVzGNsrZBA&s";
+
+        let board = [];
+        let gameOver = false;
+
+        // Sound Effect Generator
+        function playWinSound() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            
+            osc.type = 'triangle';
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            
+            // Play a happy arpeggio (C, E, G, C)
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime);       // C5
+            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1); // E5
+            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.2); // G5
+            osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.3); // C6
+            
+            osc.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.8);
+            osc.stop(ctx.currentTime + 0.8);
+        }
+
+        function initGame(rows = currentRows, cols = currentCols, mines = currentMines) {
+            // Update current settings
+            currentRows = rows;
+            currentCols = cols;
+            currentMines = mines;
+            
+            gameOver = false;
+            board = [];
+            const boardElement = document.getElementById('board');
+            
+            // Dynamically set CSS grid layout based on columns/rows
+            boardElement.style.gridTemplateColumns = `repeat(${currentCols}, 30px)`;
+            boardElement.style.gridTemplateRows = `repeat(${currentRows}, 30px)`;
+            boardElement.innerHTML = '';
+
+            // 1. Build blank data structure
+            for (let r = 0; r < currentRows; r++) {
+                board[r] = [];
+                for (let c = 0; c < currentCols; c++) {
+                    board[r][c] = {
+                        row: r,
+                        col: c,
+                        isMine: false,
+                        isRevealed: false,
+                        isFlagged: false,
+                        neighborMines: 0
+                    };
+                }
+            }
+
+            // 2. Randomly scatter mines
+            let minesPlaced = 0;
+            while (minesPlaced < currentMines) {
+                let r = Math.floor(Math.random() * currentRows);
+                let c = Math.floor(Math.random() * currentCols);
+                if (!board[r][c].isMine) {
+                    board[r][c].isMine = true;
+                    minesPlaced++;
+                }
+            }
+
+            // 3. Compute hint numbers
+            for (let r = 0; r < currentRows; r++) {
+                for (let c = 0; c < currentCols; c++) {
+                    if (board[r][c].isMine) continue;
+                    let count = 0;
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            let nr = r + dr;
+                            let nc = c + dc;
+                            if (nr >= 0 && nr < currentRows && nc >= 0 && nc < currentCols) {
+                                if (board[nr][nc].isMine) count++;
+                            }
+                        }
+                    }
+                    board[r][c].neighborMines = count;
+                }
+            }
+
+            // 4. Generate the UI Grid elements
+            for (let r = 0; r < currentRows; r++) {
+                for (let c = 0; c < currentCols; c++) {
+                    const cellElement = document.createElement('div');
+                    cellElement.classList.add('cell');
+                    cellElement.dataset.row = r;
+                    cellElement.dataset.col = c;
+                    
+                    // Left-click to reveal
+                    cellElement.addEventListener('click', () => handleLeftClick(r, c));
+                    
+                    // Right-click to flag/unflag
+                    cellElement.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        handleRightClick(r, c);
+                    });
+
+                    boardElement.appendChild(cellElement);
+                }
+            }
+        }
+
+        function getCellElement(r, c) {
+            return document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+        }
+
+        function handleLeftClick(r, c) {
+            if (gameOver) return;
+            let cell = board[r][c];
+            if (cell.isRevealed || cell.isFlagged) return;
+
+            revealCell(r, c);
+            checkWinCondition();
+        }
+
+        function handleRightClick(r, c) {
+            if (gameOver) return;
+            let cell = board[r][c];
+            if (cell.isRevealed) return;
+
+            // Toggle flag state
+            cell.isFlagged = !cell.isFlagged;
+            const cellElement = getCellElement(r, c);
+
+            if (cell.isFlagged) {
+                // Insert your custom photo as the flag
+                const img = document.createElement('img');
+                img.src = FLAG_IMAGE_URL;
+                img.alt = "Flag";
+                cellElement.appendChild(img);
+            } else {
+                // Clear image if unflagged
+                cellElement.innerHTML = '';
+            }
+        }
+
+        function revealCell(r, c) {
+            let cell = board[r][c];
+            if (cell.isRevealed) return;
+
+            cell.isRevealed = true;
+            const cellElement = getCellElement(r, c);
+            cellElement.classList.add('revealed');
+
+            // If it's a mine, it's game over
+            if (cell.isMine) {
+                cellElement.classList.add('mine');
+                cellElement.innerText = '💣';
+                endGame(false);
+                return;
+            }
+
+            // If neighbor count exists, show it
+            if (cell.neighborMines > 0) {
+                cellElement.innerText = cell.neighborMines;
+                cellElement.classList.add(`n-${cell.neighborMines}`);
+            } else {
+                // If 0, cascade reveal surrounding empty squares
+                for (let dr = -1; dr <= 1; dr++) {
+                    for (let dc = -1; dc <= 1; dc++) {
+                        let nr = r + dr;
+                        let nc = c + dc;
+                        if (nr >= 0 && nr < currentRows && nc >= 0 && nc < currentCols) {
+                            if (!board[nr][nc].isRevealed && !board[nr][nc].isFlagged) {
+                                revealCell(nr, nc);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function endGame(isWin) {
+            gameOver = true;
+            // Reveal remaining hidden mines
+            for (let r = 0; r < currentRows; r++) {
+                for (let c = 0; c < currentCols; c++) {
+                    if (board[r][c].isMine) {
+                        const cellElement = getCellElement(r, c);
+                        if (!board[r][c].isRevealed) {
+                            cellElement.classList.add('revealed', 'mine');
+                            cellElement.innerText = '💣';
+                        }
+                    }
+                }
+            }
+            
+            setTimeout(() => {
+                if (isWin) {
+                    playWinSound(); // Trigger the victory sound!
+                    alert("🎉 Victory! You cleared the field!");
+                } else {
+                    alert("💥 Boom! Game Over.");
+                }
+            }, 50);
+        }
+
+        function checkWinCondition() {
+            let win = true;
+            for (let r = 0; r < currentRows; r++) {
+                for (let c = 0; c < currentCols; c++) {
+                    // If there's a safe cell left unrevealed, game isn't won yet
+                    if (!board[r][c].isMine && !board[r][c].isRevealed) {
+                        win = false;
+                    }
+                }
+            }
+            if (win) endGame(true);
+        }
+
+        // Kick off the script on load with default (Beginner) settings
+        initGame();
+    </script>
+</body>
+</html>

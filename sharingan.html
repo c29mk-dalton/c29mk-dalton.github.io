@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genjutsu Awakening</title>
+    <style>
+        /* Base page styling */
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: #ff0000;
+        }
+
+        #warning {
+            position: fixed;
+            top: 10px;
+            text-align: center;
+            width: 100%;
+            z-index: 999;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
+        /* Splash screen to bypass browser autoplay restrictions */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #000;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+
+        #overlay h1 {
+            font-size: 2.5rem;
+            letter-spacing: 5px;
+            text-shadow: 0 0 10px #f00;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        #overlay p {
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        /* Main container for the eye */
+        .genjutsu-chamber {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .active .genjutsu-chamber {
+            opacity: 1;
+        }
+
+        /* -----------------------------------------------------------
+           THE EYE AND IRIS
+           ----------------------------------------------------------- */
+        .eye {
+            width: 350px;
+            height: 200px;
+            background-color: #fff;
+            border-radius: 50% 10%;
+            transform: rotate(45deg);
+            box-shadow: 
+                0 0 100px 30px rgba(255, 0, 0, 0.5), 
+                inset 0 0 50px 10px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            border: 4px solid #1a0000;
+            position: absolute;
+            z-index: 10;
+        }
+
+        .iris {
+            width: 170px;
+            height: 170px;
+            background-color: #f00;
+            border-radius: 50%;
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid black;
+        }
+
+        /* Animations trigger only when active class is applied */
+        .active .iris {
+            animation: background-pulse 0.2s infinite, chaos-spin 20s linear infinite;
+        }
+
+        /* -----------------------------------------------------------
+           THE HALLUCINATION LAYERS
+           ----------------------------------------------------------- */
+        .hypnotic-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        .hypno-1 {
+            background: conic-gradient(
+                from 0deg,
+                #000 0% 5%, #f00 5% 10%, #000 10% 15%, #f00 15% 20%, #000 20% 95%, #f00 95% 100%
+            );
+            background-size: 20px 20px;
+            opacity: 0.6;
+            mix-blend-mode: difference;
+        }
+
+        .active .hypno-1 {
+            animation: illusion-spin-fast 0.5s infinite;
+        }
+
+        .hypno-2 {
+            background: repeating-radial-gradient(circle at center, #000 0px, #000 5px, #f00 5px, #f00 10px);
+            opacity: 0.4;
+            mix-blend-mode: overlay;
+        }
+
+        .active .hypno-2 {
+            animation: illusion-spin-slow 5s linear infinite;
+        }
+
+        /* -----------------------------------------------------------
+           CHAOTIC MANGEKYO PATTERN
+           ----------------------------------------------------------- */
+        .mangekyo-pattern {
+            position: absolute;
+            z-index: 5;
+            width: 120px;
+            height: 120px;
+        }
+
+        .active .mangekyo-pattern {
+            animation: chaos-spin 1s ease-in-out infinite alternate;
+        }
+
+        .blade {
+            position: absolute;
+            background: #000;
+            width: 100%;
+            height: 100%;
+            border-radius: 90% 0 90% 0;
+            top: 0;
+            left: 0;
+            opacity: 0.9;
+        }
+
+        .blade-1 { transform: rotate(0deg) scaleY(1.3); }
+        .blade-2 { transform: rotate(120deg) scaleY(1.3); }
+        .blade-3 { transform: rotate(240deg) scaleY(1.3); }
+
+        .pupil {
+            width: 30px;
+            height: 30px;
+            background-color: #000;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
+        }
+
+        .active .pupil {
+            animation: pupil-blink 3s steps(1) infinite;
+        }
+
+        /* Hidden YouTube video container */
+        #video-container {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* -----------------------------------------------------------
+           ANIMATIONS
+           ----------------------------------------------------------- */
+        @keyframes pulse {
+            0% { transform: scale(1); text-shadow: 0 0 10px #f00; }
+            100% { transform: scale(1.05); text-shadow: 0 0 25px #f00, 0 0 40px #ff5555; }
+        }
+        @keyframes background-pulse {
+            0%, 100% { background-color: #f00; }
+            50% { background-color: #a00; }
+        }
+        @keyframes illusion-spin-fast {
+            0% { transform: rotate(0deg); }
+            20% { transform: rotate(180deg); }
+            40% { transform: rotate(90deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes illusion-spin-slow {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+        @keyframes chaos-spin {
+            0% { transform: rotate(-45deg); }
+            100% { transform: rotate(315deg); }
+        }
+        @keyframes pupil-blink {
+            0%, 90%, 100% { transform: scale(1); }
+            95% { transform: scale(1.5); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="warning">⚠️ PHOTOSENSITIVITY WARNING ⚠️</div>
+
+<div id="overlay" onclick="activateGenjutsu()">
+    <h1>ACTIVATE GENJUTSU</h1>
+    <p>[ Click anywhere to wake up your Sharingan ]</p>
+</div>
+
+<div class="genjutsu-chamber">
+    <div class="eye">
+        <div class="iris">
+            <div class="hypnotic-layer hypno-1"></div>
+            <div class="hypnotic-layer hypno-2"></div>
+            <div class="mangekyo-pattern">
+                <div class="blade blade-1"></div>
+                <div class="blade blade-2"></div>
+                <div class="blade blade-3"></div>
+            </div>
+            <div class="pupil"></div>
+        </div>
+    </div>
+</div>
+
+<div id="video-container">
+    <div id="player"></div>
+</div>
+
+<script>
+    // Load the YouTube Iframe Player API asynchronously
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var player;
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('player', {
+            height: '1',
+            width: '1',
+            videoId: 'sOnqjkJTMaA', // YouTube ID for Michael Jackson's Thriller
+            playerVars: {
+                'autoplay': 0,
+                'controls': 0,
+                'disablekb': 1,
+                'fs': 0,
+                'rel': 0,
+                'modestbranding': 1
+            }
+        });
+    }
+
+    function activateGenjutsu() {
+        // Hide overlay splash screen
+        const overlay = document.getElementById('overlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => overlay.style.display = 'none', 500);
+
+        // Turn on animations
+        document.body.classList.add('active');
+
+        // Play the music via YouTube API
+        if (player && typeof player.playVideo === 'function') {
+            player.playVideo();
+        }
+    }
+</script>
+
+</body>
+</html>

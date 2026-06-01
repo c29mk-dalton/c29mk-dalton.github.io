@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genjutsu Awakening</title>
+    <style>
+        /* Base page styling to centralize the eye */
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Courier New', Courier, monospace;
+            color: #ff0000;
+        }
+
+        #warning {
+            position: fixed;
+            top: 10px;
+            text-align: center;
+            width: 100%;
+            z-index: 999;
+            background: rgba(0,0,0,0.8);
+            padding: 10px;
+            font-weight: bold;
+        }
+
+        /* The main container for all chaos */
+        .genjutsu-chamber {
+            position: relative;
+            width: 500px;
+            height: 500px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* -----------------------------------------------------------
+           THE EYE AND IRIS
+           ----------------------------------------------------------- */
+        .eye {
+            width: 350px;
+            height: 200px;
+            background-color: #fff;
+            border-radius: 50% 10%; /* More asymmetric chaos */
+            transform: rotate(45deg);
+            box-shadow: 
+                0 0 100px 30px rgba(255, 0, 0, 0.5), /* Intense external glow */
+                inset 0 0 50px 10px rgba(0, 0, 0, 0.9);
+            overflow: hidden;
+            border: 4px solid #1a0000;
+            position: absolute;
+            z-index: 10;
+        }
+
+        /* The chaotic, spinning iris background */
+        .iris {
+            width: 170px;
+            height: 170px;
+            background-color: #f00; /* Brightest Red */
+            border-radius: 50%;
+            position: absolute;
+            /* The whole iris has a slow, base spin counter to everything else */
+            animation: background-pulse 0.2s infinite, chaos-spin 20s linear infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid black;
+        }
+
+        /* -----------------------------------------------------------
+           THE HALLUCINATION LAYERS (Moiré Patterns)
+           ----------------------------------------------------------- */
+        /* These layers spin at different speeds using conic-gradients to create
+           interfering patterns that strain the eyes. */
+        .hypnotic-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+        }
+
+        /* Primary rapid-spin illusion */
+        .hypno-1 {
+            background: conic-gradient(
+                from 0deg,
+                #000 0% 5%,
+                #f00 5% 10%,
+                #000 10% 15%,
+                #f00 15% 20%,
+                /* ... and so on, but using repetition ... */
+                #000 20% 95%,
+                #f00 95% 100%
+            );
+            background-size: 20px 20px; /* Small repeating patterns are key */
+            opacity: 0.6;
+            animation: illusion-spin-fast 0.5s dynamic-ease infinite;
+            mix-blend-mode: difference; /* Causes extreme color clashing */
+        }
+
+        /* Counter-spinning illusion */
+        .hypno-2 {
+            background: repeating-radial-gradient(
+                circle at center,
+                #000 0px,
+                #000 5px,
+                #f00 5px,
+                #f00 10px
+            );
+            opacity: 0.4;
+            animation: illusion-spin-slow 5s linear infinite;
+            mix-blend-mode: overlay;
+        }
+
+        /* -----------------------------------------------------------
+           CHAOTIC MANGEKYO PATTERN
+           ----------------------------------------------------------- */
+        /* Overlapping three 'blades' to form a custom chaotic pattern */
+        .mangekyo-pattern {
+            position: absolute;
+            z-index: 5;
+            width: 120px;
+            height: 120px;
+            animation: chaos-spin 1s ease-in-out infinite alternate;
+        }
+
+        .blade {
+            position: absolute;
+            background: #000;
+            width: 100%;
+            height: 100%;
+            border-radius: 90% 0 90% 0; /* Extremely sharp teardrops */
+            top: 0;
+            left: 0;
+            opacity: 0.9;
+        }
+
+        .blade-1 { transform: rotate(0deg) scaleY(1.3); }
+        .blade-2 { transform: rotate(120deg) scaleY(1.3); }
+        .blade-3 { transform: rotate(240deg) scaleY(1.3); }
+
+        .pupil {
+            width: 30px;
+            height: 30px;
+            background-color: #000;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.8);
+            animation: pupil-blink 3s steps(1) infinite;
+        }
+
+        /* -----------------------------------------------------------
+           ANIMATIONS
+           ----------------------------------------------------------- */
+
+        /* The chaotic background vibration */
+        @keyframes background-pulse {
+            0% { background-color: #f00; }
+            50% { background-color: #a00; }
+            100% { background-color: #f00; }
+        }
+
+        /* Intense rapid spin for the hallucination layer */
+        @keyframes illusion-spin-fast {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Counter spin for variety */
+        @keyframes illusion-spin-slow {
+            0% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
+        }
+
+        /* Base spin for the whole iris */
+        @keyframes chaos-spin {
+            0% { transform: rotate(-45deg); }
+            100% { transform: rotate(315deg); }
+        }
+
+        /* Occasional rapid scale blink of the pupil */
+        @keyframes pupil-blink {
+            0%, 90%, 100% { transform: scale(1); }
+            95% { transform: scale(1.5); }
+        }
+
+        /* Custom timing function for a 'glitchy' spin */
+        @keyframes illusion-spin-fast {
+            0% { transform: rotate(0deg); }
+            20% { transform: rotate(180deg); } /* Snaps around */
+            40% { transform: rotate(90deg); }  /* Backtracks */
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="warning">⚠️ PHOTOSENSITIVITY WARNING ⚠️</div>
+
+<div class="genjutsu-chamber">
+    <div class="eye">
+        <div class="iris">
+            <div class="hypnotic-layer hypno-1"></div>
+            <div class="hypnotic-layer hypno-2"></div>
+
+            <div class="mangekyo-pattern">
+                <div class="blade blade-1"></div>
+                <div class="blade blade-2"></div>
+                <div class="blade blade-3"></div>
+            </div>
+
+            <div class="pupil"></div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
