@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fast 8x8 Flow Free</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        h1 {
+            margin: 0 0 5px 0;
+            font-weight: 400;
+            letter-spacing: 2px;
+            font-size: 2rem;
+        }
+
+        #status {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            height: 24px;
+            color: #00ffcc;
+            font-weight: bold;
+        }
+
+        #game-container {
+            position: relative;
+            background-color: #1a1a1a;
+            border: 4px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+
+        canvas {
+            display: block;
+            cursor: pointer;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #333;
+            color: #fff;
+            border: 2px solid #555;
+            border-radius: 4px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background-color: #444;
+            border-color: #00ffcc;
+        }
+        
+        #new-btn {
+            background-color: #004d3d;
+            border-color: #00aa88;
+        }
+        #new-btn:hover {
+            background-color: #006652;
+            border-color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>FLOW FREE</h1>
+    <div id="status">Click "New Random Board" to start!</div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="440" height="440"></canvas>
+    </div>
+
+    <div class="btn-container">
+        <button onclick="resetLevel()">Reset Current</button>
+        <button id="new-btn" onclick="generateNewLevel()">New Random Board</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+
+        const GRID_SIZE = 8;
+        const CELL_SIZE = canvas.width / GRID_SIZE;
+
+        const COLORS = {
+            1: '#FF3333', // Red
+            2: '#33FF33', // Green
+            3: '#3333FF', // Blue
+            4: '#FFFF33', // Yellow
+            5: '#FF33FF', // Magenta
+            6: '#33FFFF', // Cyan
+            7: '#FFA500', // Orange
+            8: '#A020F0'  // Purple
+        };
+
+        let initialGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+        let paths = {}; 
+        let isDrawing = false;
+        let currentColor = null;
+        let lastCell = null;
+
+        // Fast generation: Place random pairs that don't block everything
+        function generateFastBoard() {
+            // Reset grid
+            initialGrid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+            
+            let attempts = 0;
+            let colorId = 1;
+            const maxColors = 6; // 6 colors fits comfortably on an 8x8 without locking up
+
+            while (colorId <= maxColors && attempts < 200) {
+                attempts++;
+                let r1 = Math.floor(Math.random() * GRID_SIZE);
+                let c1 = Math.floor(Math.random() * GRID_SIZE);
+                let r2 = Math.floor(Math.random() * GRID_SIZE);
+                let c2 = Math.floor(Math.random() * GRID_SIZE);
+
+                // Ensure dots are far enough apart and spaces are empty
+                let dist = Math.abs(r1 - r2) + Math.abs(c1 - c2);
+                if (dist > 2 && dist < 7 && initialGrid[r1][c1] === 0 && initialGrid[r2][c2] === 0) {
+                    initialGrid[r1][c1] = colorId;
+                    initialGrid[r2][c2] = colorId;
+                    colorId++;
+                }
+            }
+        }
+
+        function initPaths() {
+            paths = {};
+            for (let id in COLORS) {
+                paths[id] = [];
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Background Grid
+            ctx.strokeStyle = '#2c2c2c';
+            ctx.lineWidth = 2;
+            for (let i = 0; i <= GRID_SIZE; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * CELL_SIZE, 0);
+                ctx.lineTo(i * CELL_SIZE, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, i * CELL_SIZE);
+                ctx.lineTo(canvas.width, i * CELL_SIZE);
+                ctx.stroke();
+            }
+
+            // Draw Paths/Pipes
+            for (let colorId in paths) {
+                const path = paths[colorId];
+                if (path.length > 0) {
+                    ctx.strokeStyle = COLORS[colorId];
+                    ctx.lineWidth = 16; 
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(path[0].x * CELL_SIZE + CELL_SIZE / 2, path[0].y * CELL_SIZE + CELL_SIZE / 2);
+                    for (let i = 1; i < path.length; i++) {
+                        ctx.lineTo(path[i].x * CELL_SIZE + CELL_SIZE / 2, path[i].y * CELL_SIZE + CELL_SIZE / 2);
+                    }
+                    ctx.stroke();
+                }
+            }
+
+            // Draw Dots
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const val = initialGrid[r][c];
+                    if (val !== 0 && COLORS[val]) {
+                        ctx.fillStyle = COLORS[val];
+                        ctx.beginPath();
+                        ctx.arc(c * CELL_SIZE + CELL_SIZE / 2, r * CELL_SIZE + CELL_SIZE / 2, CELL_SIZE * 0.35, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function getCellCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Works for both mouse and touch events
+            const clientX = e.clientX || (e.touches && e.touches[0] ? e.touches[0].clientX : 0);
+            const clientY = e.clientY || (e.touches && e.touches[0] ? e.touches[0].clientY : 0);
+            
+            const x = Math.floor((clientX - rect.left) / CELL_SIZE);
+            const y = Math.floor((clientY - rect.top) / CELL_SIZE);
+            if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) return { x, y };
+            return null;
+        }
+
+        function breakOverlaps(x, y, activeColorId) {
+            for (let colorId in paths) {
+                if (colorId == activeColorId) continue;
+                const idx = paths[colorId].findIndex(p => p.x === x && p.y === y);
+                if (idx !== -1) {
+                    paths[colorId] = []; 
+                }
+            }
+        }
+
+        function handleStart(e) {
+            const cell = getCellCoords(e);
+            if (!cell) return;
+
+            const colorAtCell = initialGrid[cell.y][cell.x];
+            if (colorAtCell !== 0 && COLORS[colorAtCell]) {
+                isDrawing = true;
+                currentColor = colorAtCell;
+                paths[currentColor] = [cell];
+                lastCell = cell;
+                breakOverlaps(cell.x, cell.y, currentColor);
+                draw();
+            }
+        }
+
+        function handleMove(e) {
+            if (!isDrawing) return;
+            const cell = getCellCoords(e);
+            if (!cell) return;
+
+            const isAdjacent = lastCell && (Math.abs(cell.x - lastCell.x) + Math.abs(cell.y - lastCell.y) === 1);
+            
+            if (isAdjacent) {
+                const selfIdx = paths[currentColor].findIndex(p => p.x === cell.x && p.y === cell.y);
+                if (selfIdx !== -1) {
+                    paths[currentColor] = paths[currentColor].slice(0, selfIdx + 1);
+                    lastCell = cell;
+                    draw();
+                    return;
+                }
+
+                const targetDotColor = initialGrid[cell.y][cell.x];
+
+                if (targetDotColor === 0 || targetDotColor === currentColor) {
+                    breakOverlaps(cell.x, cell.y, currentColor);
+                    paths[currentColor].push(cell);
+                    lastCell = cell;
+                    draw();
+
+                    if (targetDotColor === currentColor && paths[currentColor].length > 1) {
+                        isDrawing = false;
+                        checkWinCondition();
+                    }
+                }
+            }
+        }
+
+        function handleEnd() {
+            if (isDrawing) {
+                isDrawing = false;
+                checkWinCondition();
+            }
+        }
+
+        function checkWinCondition() {
+            let completedConnections = 0;
+            const coveredSet = new Set();
+            const totalColorsOnBoard = new Set(initialGrid.flat().filter(v => v !== 0)).size;
+
+            for (let colorId in paths) {
+                const path = paths[colorId];
+                if (path.length < 2) continue;
+
+                const start = path[0];
+                const end = path[path.length - 1];
+                if (initialGrid[start.y][start.x] == colorId && initialGrid[end.y][end.x] == colorId) {
+                    completedConnections++;
+                }
+                path.forEach(p => coveredSet.add(`${p.x},${p.y}`));
+            }
+
+            // In this casual version, you win when all paths are successfully connected!
+            if (completedConnections === totalColorsOnBoard) {
+                statusDiv.innerText = "🎉 Level Complete! 🎉";
+                statusDiv.style.color = "#00ff33";
+            } else {
+                statusDiv.innerText = "Connect matching colors & fill the board!";
+                statusDiv.style.color = "#00ffcc";
+            }
+        }
+
+        function resetLevel() {
+            initPaths();
+            statusDiv.innerText = "Connect matching colors & fill the board!";
+            statusDiv.style.color = "#00ffcc";
+            draw();
+        }
+
+        function generateNewLevel() {
+            generateFastBoard();
+            initPaths();
+            statusDiv.innerText = "Connect matching colors & fill the board!";
+            statusDiv.style.color = "#00ffcc";
+            draw();
+        }
+
+        // Event Listeners (Mouse & Touch)
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+
+        canvas.addEventListener('touchstart', (e) => { handleStart(e); e.preventDefault(); }, { passive: false });
+        canvas.addEventListener('touchmove', (e) => { handleMove(e); e.preventDefault(); }, { passive: false });
+        window.addEventListener('touchend', handleEnd);
+
+        // Initial setup
+        generateNewLevel();
+    </script>
+</body>
+</html>
